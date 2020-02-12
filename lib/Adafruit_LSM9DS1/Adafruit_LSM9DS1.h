@@ -22,7 +22,7 @@
 #endif
 #include "Wire.h"
 #include <SPI.h>
-#include <Adafruit_Sensor.h>
+#include "Adafruit_Sensor.h"
 
 #define LSM9DS1_ADDRESS_ACCELGYRO          (0x6B)
 #define LSM9DS1_ADDRESS_MAG                (0x1E)
@@ -227,6 +227,7 @@ class Adafruit_LSM9DS1
         (_parent->*_readFunc)();
         /* Fill in event data. */
         (_parent->*_eventFunc)(event, millis());
+        return false;
       }
       virtual void getSensor(sensor_t* sensor) {
         /* Fill in sensor metadata. */
