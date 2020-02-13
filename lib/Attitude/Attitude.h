@@ -18,9 +18,9 @@
 
 // define struct for Euler angles in RADIANS
 typedef struct Euler {
-    float psi; // rot about Z
-    float theta; // rot about Y
-    float phi; // rot about X
+    float psi; // rot about Z // yaw
+    float theta; // rot about Y // pitch
+    float phi; // rot about X // roll
 } Euler;
 
 // initializes angles to 0
@@ -73,7 +73,7 @@ void AttitudeRexp(float Rexp[3][3], float w[3]);
  */
 void AttitudeOpenLoopIntegration(float R[3][3], float nR[3][3], float g[3], float deltaT);
 
-void AttitudeClosedLoopIntegrationAcc(float R[3][3], float nR[3][3], float gyro[3], float acc[3]);
+void AttitudeClosedLoopIntegrationAcc(float R[3][3], float nR[3][3], float gyro[3], float acc[3], float accI[3]);
 
 void AttitudeClosedLoopIntegrationAccMag(float R[3][3], float nR[3][3], float gyro[3],
                                         float acc[3], float mag[3], float biasE[3],

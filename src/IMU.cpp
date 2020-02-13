@@ -21,22 +21,29 @@ bool IMU_Init(void) {
 }
 
 void IMU_Read(float acc[3], float gyro[3]) {
+    /** IMU is mounted on PL such that z-axis points up,
+    * x-axis points forward, and y-axis points to the right.
+    * If only using accel for pitch/roll estimation, ensure
+    * that if the axis points towards the earth, it outputs
+    * +1g. Otherwise, alter the axes to represent a right
+    * handed coordinate system (z down, x forward, y left)
+    * where an alignment with earth's downward gravitational
+    * field vector outputs -1g.
+    */
     dof.readAccel();
     acc[0] = dof.accelData.x;
-    acc[1] = dof.accelData.y;
-    acc[2] = dof.accelData.z;
+    // negate y to convert sensor data to
+    // right handed coordinate system
+    acc[1] = -dof.accelData.y;
+    acc[2] = -dof.accelData.z;
 
     dof.readGyro();
     gyro[0] = dof.gyroData.x;
-    gyro[1] = dof.gyroData.y;
+    // negate y to convert sensor data to
+    // right handed coordinate system
+    gyro[1] = -dof.gyroData.y;
     gyro[2] = dof.gyroData.z;
 }
-
-
-#define ACCEL_X_OFFSET 			-453.11
-#define ACCEL_Y_OFFSET 			-287.54
-#define ACCEL_Z_OFFSET 			-104.92
-#define ACCEL_SCALE_FACTOR 	    16393.44 // LSB/g
 
 /** 
  * @Author: Kodiak 
@@ -70,15 +77,18 @@ void IMU_AccCalibrate(float acc[3]) {
 }
 
 void IMU_GyroCalibrate(float gyro[3]) {
-    gyro[0] = (gyro[0] - gyroXBias) * GYRO_SF_DATASHEET * GYRO_SF_X_CALIBRATION;
-    gyro[1] = (gyro[1] - gyroYBias) * GYRO_SF_DATASHEET * GYRO_SF_Y_CALIBRATION;
-    gyro[2] = (gyro[2] - gyroZBias) * GYRO_SF_DATASHEET * GYRO_SF_Z_CALIBRATION;
+    // subtract the initial bias term and convert to rads/s
+    gyro[0] = (gyro[0] - gyroXBias) * GYRO_SF_DATASHEET * GYRO_SF_X_CALIBRATION * PI/180;
+    gyro[1] = (gyro[1] - gyroYBias) * GYRO_SF_DATASHEET * GYRO_SF_Y_CALIBRATION * PI/180;
+    gyro[2] = (gyro[2] - gyroZBias) * GYRO_SF_DATASHEET * GYRO_SF_Z_CALIBRATION * PI/180;
 }
 
-void IMU_CalculateGyroBias(void) {
+void IMU_CalculateGyroBiasAndAccInertial(float accI[3]) {
     LogInfo("Calculating gyro biases for 10 seconds\n");
 
 	float xSumG = 0.0, ySumG = 0.0, zSumG = 0.0; // gyro data
+    float calA[3] = {0.0}; // calibrated accel data
+    float xSumA = 0.0, ySumA = 0.0, zSumA = 0.0; // accel data
     for (int i = 0; i < NUM_GYRO_BIAS_SAMPLES; i++) {
 		dof.readGyro();
 		float xRawG = dof.gyroData.x; // roll
@@ -87,14 +97,34 @@ void IMU_CalculateGyroBias(void) {
 		xSumG += xRawG;
 		ySumG += yRawG;
 		zSumG += zRawG;
+
+        dof.readAccel();
+        // data is raw at this point
+        calA[0] = (dof.accelData.x);// - ACCEL_X_OFFSET) / ACCEL_SCALE_FACTOR;
+        calA[1] = (dof.accelData.y);// - ACCEL_Y_OFFSET) / ACCEL_SCALE_FACTOR;
+        calA[2] = (dof.accelData.z);// - ACCEL_Z_OFFSET) / ACCEL_SCALE_FACTOR;
+        IMU_AccCalibrate(calA); // now the data is calibrated
+        xSumA += calA[0];
+        ySumA += calA[1];
+        zSumA += calA[2];
+
         delay(100);
     }
+    // average gyro bias over the 10 second interval
     gyroXBias = xSumG / NUM_GYRO_BIAS_SAMPLES;
 	gyroYBias = ySumG / NUM_GYRO_BIAS_SAMPLES;
 	gyroZBias = zSumG / NUM_GYRO_BIAS_SAMPLES;
-    LogInfo("gyro x bias ", gyroXBias, 2);
-    LogInfo(", gyro y bias ", gyroYBias, 2);
-    LogInfo(", gyro z bias ", gyroZBias, 2, true);
+    // average acc data over the 10 second interval
+    float xAvgA = xSumA / NUM_GYRO_BIAS_SAMPLES;
+    float yAvgA = ySumA / NUM_GYRO_BIAS_SAMPLES;
+    float zAvgA = zSumA / NUM_GYRO_BIAS_SAMPLES;
+
+    // normal of calibrated acc data
+    float accNorm = sqrt(xAvgA*xAvgA + yAvgA*yAvgA + zAvgA*zAvgA);
+    // calculate inertial acc in unit length
+    accI[0] = xAvgA / accNorm;
+    accI[1] = yAvgA / accNorm;
+    accI[2] = zAvgA / accNorm;
 }
 
 void IMU_PrintData(float acc[3], float gyro[3]) {
@@ -110,6 +140,14 @@ void IMU_PrintData(float acc[3], float gyro[3]) {
     LogInfo(F(", time, %lu\n"), millis());
 }
 
+void IMU_PrintAccData(float acc[3]) {
+    uint8_t decimals = 3;
+    LogInfo("", acc[0], decimals);
+    LogInfo(", ", acc[1], decimals);
+    LogInfo(", ", acc[2], decimals);
+    LogInfo(F(", %lu\n"), millis());
+}
+
 void IMU_PrintGyroData(float gyro[3]) {
     uint8_t decimals = 3;
     LogInfo("", gyro[0], decimals);
@@ -123,8 +161,8 @@ void IMU_PrintAccPitchRoll(float acc[3]) {
     float x = acc[0];
     float y = acc[1];
     float z = acc[2];
-    float pitch = atan2(x, sqrt(y*y + z*z)) * 180/PI;
-    float roll = -atan2(y, z) * 180/PI;
+    float pitch = atan2(-x, sqrt(y*y + z*z)) * 180/PI;
+    float roll = atan2(y, z) * 180/PI;
     LogInfo("pitch, ", pitch, 2);
     LogInfo(", roll, ", roll, 2);
     LogInfo(", acc x, ", acc[0], 4);

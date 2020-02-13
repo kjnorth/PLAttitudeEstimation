@@ -10,7 +10,7 @@
 void AttitudeTests() {
     AttitudeDcmToEulerTest();
     AttitudeEulerToDcmTest();
-    AttitudeRexpTest();
+    // AttitudeRexpTest();
     // test use of cos with small inputs .. cos becomes less accurate near 90 degrees,
     // but this is the known gimbal lock issue, and the PL should never get within
     // 10 degrees of 90

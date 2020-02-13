@@ -15,12 +15,12 @@ void AttitudeEulerInit(Euler* angles) {
 
 void AttitudePrintEuler(Euler* angles) {
     // printf("psi: %.5f, theta: %.5f, phi: %.5f\r\n",angles->psi,angles->theta,angles->phi);
-    Serial.print("psi: ");
-    Serial.print(angles->psi*(180/PI), 5);
-    Serial.print(", theta: ");
-    Serial.print(angles->theta*(180/PI), 5);
-    Serial.print(", phi: ");
-    Serial.println(angles->phi*(180/PI), 5);
+    Serial.print("yaw: ");
+    Serial.print(angles->psi*(180/PI), 3);
+    Serial.print(", pitch: ");
+    Serial.print(angles->theta*(180/PI), 3);
+    Serial.print(", roll: ");
+    Serial.println(angles->phi*(180/PI), 3);
 }
 
 void AttitudePrintVector(float v[3]) {
@@ -122,12 +122,11 @@ void AttitudeOpenLoopIntegration(float R[3][3], float nR[3][3], float g[3], floa
     MatrixMultiply(R, Rexp, nR);
 }
 
-void AttitudeClosedLoopIntegrationAcc(float R[3][3], float nR[3][3], float gyro[3], float acc[3]) {
-    float accInertial[3] = {0.0, 0.0, -1.0}; // inertial body frame of accel
+void AttitudeClosedLoopIntegrationAcc(float R[3][3], float nR[3][3], float gyro[3], float acc[3], float accI[3]) {
     static float biasE[3] = {0.0}; // running bias estimate
     unsigned long curT = millis();
     static unsigned long preT = millis();
-    unsigned long dt = (curT - preT) / 1000.0; // delta time since last function call
+    unsigned long dt = 1;//(curT - preT) / 1000.0; // delta time since last function call
                                                // in seconds
     preT = curT; 
     // tuning parameters
@@ -137,7 +136,7 @@ void AttitudeClosedLoopIntegrationAcc(float R[3][3], float nR[3][3], float gyro[
     float RT[3][3] = {0.0};
     MatrixTranspose(R, RT);
     float RT_accI[3] = {0.0}; // R' * accelInertial
-    MatrixVectorMultiply(RT, accInertial, RT_accI);
+    MatrixVectorMultiply(RT, accI, RT_accI);
     // acc data * dt
     float acc_dt[3] = {dt*acc[0], dt*acc[1], dt*acc[2]};
     float rxa[3][3] = {0.0}; // rcross matrix created with accel data

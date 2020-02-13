@@ -9,16 +9,23 @@
 #define CONFIG_H
 
 #include <Arduino.h>
+#include "..\lib\Attitude\Attitude.h"
 #include "..\lib\Attitude\AttitudeTest.h"
 #include "..\lib\Adafruit_LSM9DS1\Adafruit_LSM9DS1.h"
 #include "..\lib\DataLog\DataLog.h"
 #include "IMU.h"
+#include "..\lib\Matrix\Matrix.h"
 #include "..\lib\Matrix\MatrixTest.h"
 
-// IMU moving average
+#define IMU_SAMPLE_TIME                         20 // ms
+// accelerometer moving average
 #define SHIFT_ACC 			                    3
 #define SAMPLES_ACC 		                    (1 << SHIFT_ACC)
-#define IMU_SAMPLE_TIME                         20 // ms
+// accelerometer offsets and scale factor
+#define ACCEL_X_OFFSET 			                -453.11
+#define ACCEL_Y_OFFSET 			                -287.54
+#define ACCEL_Z_OFFSET 			                -104.92
+#define ACCEL_SCALE_FACTOR 	                    16393.44 // LSB/g
 // gyro scale factor from the datasheet
 #define GYRO_SF_DATASHEET                       0.00875 // 8.75 mdps/LSB
 // gyro scale factor from calibration process
