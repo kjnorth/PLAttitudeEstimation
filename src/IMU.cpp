@@ -70,9 +70,9 @@ void IMU_AccCalibrate(float acc[3]) {
 }
 
 void IMU_GyroCalibrate(float gyro[3]) {
-    gyro[0] = (gyro[0] - gyroXBias) * GYRO_SCALE_FACTOR;
-    gyro[1] = (gyro[1] - gyroYBias) * GYRO_SCALE_FACTOR;
-    gyro[2] = (gyro[2] - gyroZBias) * GYRO_SCALE_FACTOR;
+    gyro[0] = (gyro[0] - gyroXBias) * GYRO_SF_DATASHEET * GYRO_SF_X_CALIBRATION;
+    gyro[1] = (gyro[1] - gyroYBias) * GYRO_SF_DATASHEET * GYRO_SF_Y_CALIBRATION;
+    gyro[2] = (gyro[2] - gyroZBias) * GYRO_SF_DATASHEET * GYRO_SF_Z_CALIBRATION;
 }
 
 void IMU_CalculateGyroBias(void) {
@@ -107,6 +107,14 @@ void IMU_PrintData(float acc[3], float gyro[3]) {
     LogInfo(", gyro x, ", gyro[0], decimals);
     LogInfo(", gyro y, ", gyro[1], decimals);
     LogInfo(", gyro z, ", gyro[2], decimals);
+    LogInfo(F(", time, %lu\n"), millis());
+}
+
+void IMU_PrintGyroData(float gyro[3]) {
+    uint8_t decimals = 3;
+    LogInfo("", gyro[0], decimals);
+    LogInfo(", ", gyro[1], decimals);
+    LogInfo(", ", gyro[2], decimals);
     LogInfo(F(", %lu\n"), millis());
 }
 
