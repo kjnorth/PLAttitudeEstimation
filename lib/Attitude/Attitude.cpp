@@ -15,12 +15,12 @@ void AttitudeEulerInit(Euler* angles) {
 
 void AttitudePrintEuler(Euler* angles) {
     // printf("psi: %.5f, theta: %.5f, phi: %.5f\r\n",angles->psi,angles->theta,angles->phi);
-    Serial.print("yaw: ");
-    Serial.print(angles->psi*(180/PI), 3);
-    Serial.print(", pitch: ");
+    // Serial.print("yaw: ");
+    // Serial.print(angles->psi*(180/PI), 3);
+    Serial.print("euler pitch: ");
     Serial.print(angles->theta*(180/PI), 3);
     Serial.print(", roll: ");
-    Serial.println(angles->phi*(180/PI), 3);
+    Serial.print(-angles->phi*(180/PI), 3);
 }
 
 void AttitudePrintVector(float v[3]) {
@@ -38,9 +38,9 @@ float AttitudeMaclaurinCos(float x) {
 }
 
 void AttitudeDcmToEuler(float dcm[3][3], Euler* angles) {
-    angles->theta = asin(-1.0*dcm[0][2]);
-    angles->psi = atan2(dcm[0][1], dcm[0][0]);
-    angles->phi = atan2(dcm[1][2], dcm[2][2]);
+    angles->theta = asin(-1.0*dcm[0][2]); // pitch
+    angles->psi = atan2(dcm[0][1], dcm[0][0]); // yaw
+    angles->phi = atan2(dcm[1][2], dcm[2][2]); // roll
 }
 
 void AttitudeEulerToDcm(Euler* angles, float dcm[3][3]) {
@@ -125,13 +125,12 @@ void AttitudeOpenLoopIntegration(float R[3][3], float nR[3][3], float g[3], floa
 void AttitudeClosedLoopIntegrationAcc(float R[3][3], float nR[3][3], float gyro[3], float acc[3], float accI[3]) {
     static float biasE[3] = {0.0}; // running bias estimate
     unsigned long curT = millis();
-    static unsigned long preT = millis();
-    unsigned long dt = 1;//(curT - preT) / 1000.0; // delta time since last function call
-                                               // in seconds
-    preT = curT; 
+    static unsigned long preT = curT;
+    float dt = (curT - preT) / 1000.0; // dt in seconds
+    preT = curT;
     // tuning parameters
     float akp = 1;
-    float aki = 0.001;
+    float aki = 0.009795;
     // get wmeas_a
     float RT[3][3] = {0.0};
     MatrixTranspose(R, RT);
@@ -314,6 +313,16 @@ void AttitudeDcmFromTriad(float nR[3][3], float acc[3], float mag[3], float accI
     MatrixTranspose(A, nR);
 }
 
+void AttitudeComplimentaryFilter(float gyro[3], float acc[3], Euler* angles) {
+    unsigned long curTime = millis();
+    static unsigned long preTime = curTime;
+    float dt = (curTime - preTime) / 1000.0; // dt in seconds
+    preTime = curTime;
+}
+
+// can generate scale matrices and offset vectors using Matlab, pass them into
+// this function, and will map data into +/-1 range; rather than finding offsets
+// and scale factors for each axis
 void AttitudeCorrectData(float raw[3], float A[3][3], float B[3], float corr[3]) {
     float scaleData[3] = {0.0};
     MatrixVectorMultiply(A, raw, scaleData);

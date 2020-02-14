@@ -50,7 +50,7 @@ void loop() {
   if (curTime - preTime >= IMU_SAMPLE_TIME) {
     IMU_Read(acc, gyro);
     IMU_AccCalibrate(acc);
-    IMU_GyroCalibrate(gyro);
+    IMU_GyroCalibrateRPS(gyro);
     // perform the estimation algorithm of the DCM
     AttitudeClosedLoopIntegrationAcc(R, nR, gyro, acc, accI);
     // convert DCM into yaw, pitch, roll angles
@@ -60,13 +60,11 @@ void loop() {
     preTime = curTime;
   }
   
-  if (curTime - lastLogTime >= 50) {
+  if (curTime - lastLogTime >= 100) {
     // IMU_PrintData(acc, gyro);
-    // IMU_PrintGyroData(gyro);
-    // IMU_PrintAccData(acc);
-    // IMU_PrintAccPitchRoll(acc);
-    // MatrixPrint(nR);
     AttitudePrintEuler(&angles);
+    IMU_PrintAccPitchRoll(acc);
+    // IMU_PrintAccData(acc);
     lastLogTime = curTime;
   }
 }

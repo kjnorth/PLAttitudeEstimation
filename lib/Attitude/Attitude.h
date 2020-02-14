@@ -9,14 +9,14 @@
 #define	ATTITUDE_H
 
 #include <Arduino.h>
-#include <stdio.h>
 #include <Math.h>
 #include "..\Matrix\Matrix.h"
+#include <stdio.h>
 
 #define FP_DELTA2 0.004
 // #define PI 3.14159265 // PI already defined in Arduion.h
 
-// define struct for Euler angles in RADIANS
+// define struct for Euler angles
 typedef struct Euler {
     float psi; // rot about Z // yaw
     float theta; // rot about Y // pitch
@@ -80,6 +80,15 @@ void AttitudeClosedLoopIntegrationAccMag(float R[3][3], float nR[3][3], float gy
                                         float accI[3], float magI[3], float dt);
 
 void AttitudeDcmFromTriad(float nR[3][3], float acc[3], float mag[3], float accI[3], float magI[3]);
+
+/**
+ * 
+ * @param gyro - gyro data in degrees per second
+ * @param acc - flitered accelerometer data in G's
+ * @param angles - struct that holds pitch, roll, and yaw angles
+ *      Note that yaw is not calculated in this function
+ */
+void AttitudeComplimentaryFilter(float gyro[3], float acc[3], Euler* angles);
 
 /**
  * 

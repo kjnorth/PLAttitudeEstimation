@@ -13,7 +13,8 @@
 bool IMU_Init(void);
 void IMU_Read(float acc[3], float gyro[3]);
 void IMU_AccCalibrate(float acc[3]);
-void IMU_GyroCalibrate(float gyro[3]);
+void IMU_GyroCalibrateDPS(float gyro[3]); // calibrates gyro data to DEGREES per second
+void IMU_GyroCalibrateRPS(float gyro[3]); // calibrates gyro data to RADIANS per second
 void IMU_CalculateGyroBiasAndAccInertial(float accI[3]);
 void IMU_PrintData(float acc[3], float gyro[3]);
 void IMU_PrintAccData(float acc[3]);
