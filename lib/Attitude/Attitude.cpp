@@ -130,7 +130,7 @@ void AttitudeClosedLoopIntegrationAcc(float R[3][3], float nR[3][3], float gyro[
     preT = curT;
     // tuning parameters
     float akp = 1;
-    float aki = 0.009795;
+    float aki = 0.009796;
     // get wmeas_a
     float RT[3][3] = {0.0};
     MatrixTranspose(R, RT);
@@ -313,11 +313,21 @@ void AttitudeDcmFromTriad(float nR[3][3], float acc[3], float mag[3], float accI
     MatrixTranspose(A, nR);
 }
 
+#define ALPHA 0.8
 void AttitudeComplimentaryFilter(float gyro[3], float acc[3], Euler* angles) {
     unsigned long curTime = millis();
     static unsigned long preTime = curTime;
     float dt = (curTime - preTime) / 1000.0; // dt in seconds
     preTime = curTime;
+
+    angles->theta += gyro[1] * dt; // pitch is rotation about y-axis
+    angles->phi += gyro[0] * dt; // roll is rotation about x-axis
+
+    float pitchAcc = atan2f(acc[0], acc[2]) * 180/PI;
+    float rollAcc = atan2f(acc[1], acc[2]) * 180/PI;
+
+    angles->theta = angles->theta * ALPHA + pitchAcc * (1 - ALPHA);
+    angles->phi = angles->phi * ALPHA + rollAcc * (1 - ALPHA);
 }
 
 // can generate scale matrices and offset vectors using Matlab, pass them into

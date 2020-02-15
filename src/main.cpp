@@ -50,12 +50,18 @@ void loop() {
   if (curTime - preTime >= IMU_SAMPLE_TIME) {
     IMU_Read(acc, gyro);
     IMU_AccCalibrate(acc);
+    
+    // for closed loop integration complimentary filter
     IMU_GyroCalibrateRPS(gyro);
     // perform the estimation algorithm of the DCM
     AttitudeClosedLoopIntegrationAcc(R, nR, gyro, acc, accI);
     // convert DCM into yaw, pitch, roll angles
     AttitudeDcmToEuler(nR, &angles);
     MatrixCopy(nR, R);
+
+    // for much simpler complimentary filter
+    // IMU_GyroCalibrateDPS(gyro);
+    // AttitudeComplimentaryFilter(gyro, acc, &angles);
 
     preTime = curTime;
   }
