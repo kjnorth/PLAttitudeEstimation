@@ -17,10 +17,18 @@ void AttitudePrintEuler(Euler* angles) {
     // printf("psi: %.5f, theta: %.5f, phi: %.5f\r\n",angles->psi,angles->theta,angles->phi);
     // Serial.print("yaw: ");
     // Serial.print(angles->psi*(180/PI), 3);
-    Serial.print("euler pitch: ");
+    // not estimating yaw now
+    // Serial.print("euler pitch: ");
+    // Serial.print(angles->theta*(180/PI), 3);
+    // Serial.print(", roll: ");
+    // Serial.print(-angles->phi*(180/PI), 3);
+    // for data logging
+    Serial.print(", ");
     Serial.print(angles->theta*(180/PI), 3);
-    Serial.print(", roll: ");
+    Serial.print(", ");
     Serial.print(-angles->phi*(180/PI), 3);
+    Serial.print(", ");
+    Serial.println(millis());
 }
 
 void AttitudePrintVector(float v[3]) {
@@ -129,8 +137,8 @@ void AttitudeClosedLoopIntegrationAcc(float R[3][3], float nR[3][3], float gyro[
     float dt = (curT - preT) / 1000.0; // dt in seconds
     preT = curT;
     // tuning parameters
-    float akp = 1;
-    float aki = 0.009796;
+    float akp = 4.5;
+    float aki = 0.009783925;
     // get wmeas_a
     float RT[3][3] = {0.0};
     MatrixTranspose(R, RT);
@@ -242,7 +250,7 @@ void AttitudeDcmFromTriad(float nR[3][3], float acc[3], float mag[3], float accI
     mag[0] = 1;
     mag[1] = 0;
     mag[2] = 0;
-    //*/
+    */
     
 //    float Ro[3][3] = {
 //        {1.0, 0.0, 0.0},
@@ -313,7 +321,7 @@ void AttitudeDcmFromTriad(float nR[3][3], float acc[3], float mag[3], float accI
     MatrixTranspose(A, nR);
 }
 
-#define ALPHA 0.8
+#define ALPHA 0.95//0.85
 void AttitudeComplimentaryFilter(float gyro[3], float acc[3], Euler* angles) {
     unsigned long curTime = millis();
     static unsigned long preTime = curTime;

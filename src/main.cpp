@@ -16,10 +16,13 @@ float R[3][3] = {
 float nR[3][3] = {0.0}; // this is the updated DCM accounting for gyro bias
 // struct to hold yaw, pitch, and roll angles
 struct Euler angles;
+struct Euler anglesTemp;
 
 // array indices 0, 1, 2 corrsepond to x, y, z, respectively
 float acc[3] = {0.0};
-float gyro[3] = {0.0};
+float gyro[3] = {0.0}; // raw data
+float gyroD[3] = {0.0}; // degrees
+float gyroR[3] = {0.0}; // radians
 float accI[3] = {0.0}; // accel inertial frame
 
 unsigned long curTime = millis();
@@ -29,12 +32,11 @@ unsigned long lastLogTime = 0;
 void setup() {
   Serial.begin(115200);
   LogInfo("attitude estimation program starts\n");
-  // MatrixTests();
-  // AttitudeTests();
   IMU_Init();
   delay(1000); // small delay needed here to give gyro time
                // to warm up before sampling 
   AttitudeEulerInit(&angles);
+  AttitudeEulerInit(&anglesTemp);
   LogInfo("filling acc moving average buffer\n");
   for (int i = 0; i < 2*SAMPLES_ACC; i++) {
     IMU_Read(acc, gyro);
@@ -50,27 +52,41 @@ void loop() {
   if (curTime - preTime >= IMU_SAMPLE_TIME) {
     IMU_Read(acc, gyro);
     IMU_AccCalibrate(acc);
+
+    gyroD[0] = gyro[0];
+    gyroR[0] = gyro[0];
+    gyroD[1] = gyro[1];
+    gyroR[1] = gyro[1];
+    gyroD[2] = gyro[2];
+    gyroR[2] = gyro[2];
     
     // for closed loop integration complimentary filter
-    IMU_GyroCalibrateRPS(gyro);
+    IMU_GyroCalibrateRPS(gyroR);
     // perform the estimation algorithm of the DCM
-    AttitudeClosedLoopIntegrationAcc(R, nR, gyro, acc, accI);
+    AttitudeClosedLoopIntegrationAcc(R, nR, gyroR, acc, accI);
     // convert DCM into yaw, pitch, roll angles
     AttitudeDcmToEuler(nR, &angles);
     MatrixCopy(nR, R);
 
     // for much simpler complimentary filter
-    // IMU_GyroCalibrateDPS(gyro);
-    // AttitudeComplimentaryFilter(gyro, acc, &angles);
+    IMU_GyroCalibrateDPS(gyroD);
+    AttitudeComplimentaryFilter(gyroD, acc, &anglesTemp);
 
     preTime = curTime;
   }
   
   if (curTime - lastLogTime >= 100) {
-    // IMU_PrintData(acc, gyro);
+    // for much smipler complimentary filter
+    // LogInfo("simple pitch: ", anglesTemp.theta, 2);
+    // LogInfo(", roll: ", anglesTemp.phi, 2);
+    // for data logging
+    LogInfo("", anglesTemp.theta, 2);
+    LogInfo(", ", anglesTemp.phi, 2);
+    
+    // for closed loop integration complimentary filter
     AttitudePrintEuler(&angles);
-    IMU_PrintAccPitchRoll(acc);
-    // IMU_PrintAccData(acc);
+    // IMU_PrintAccPitchRoll(acc);
+
     lastLogTime = curTime;
   }
 }
