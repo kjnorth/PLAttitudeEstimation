@@ -104,7 +104,9 @@ void IMU_CalculateGyroBiasAndAccInertial(float accI[3]) {
         dof.readAccel();
         // data is raw at this point
         calA[0] = (dof.accelData.x);
-        calA[1] = (dof.accelData.y);
+        // negate y to convert sensor data to
+        // right handed coordinate system
+        calA[1] = -(dof.accelData.y);
         calA[2] = (dof.accelData.z);
         IMU_AccCalibrate(calA); // now the data is calibrated
         xSumA += calA[0];

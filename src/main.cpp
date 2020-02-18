@@ -81,10 +81,10 @@ void loop() {
     // LogInfo(", roll: ", anglesTemp.phi, 2);
     // for data logging
     LogInfo("", anglesTemp.theta, 2);
-    LogInfo(", ", anglesTemp.phi, 2, true);
+    LogInfo(", ", anglesTemp.phi, 2);
     
     // for closed loop integration complimentary filter
-    // AttitudePrintEuler(&angles);
+    AttitudePrintEuler(&angles);
 
     lastLogTime = curTime;
   }
