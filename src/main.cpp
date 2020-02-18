@@ -38,7 +38,7 @@ void setup() {
   AttitudeEulerInit(&angles);
   AttitudeEulerInit(&anglesTemp);
   LogInfo("filling acc moving average buffer\n");
-  for (int i = 0; i < 2*SAMPLES_ACC; i++) {
+  for (int i = 0; i < 2*SAMPLES_ACCEL; i++) {
     IMU_Read(acc, gyro);
     IMU_AccCalibrate(acc);
     delay(IMU_SAMPLE_TIME);
@@ -81,11 +81,10 @@ void loop() {
     // LogInfo(", roll: ", anglesTemp.phi, 2);
     // for data logging
     LogInfo("", anglesTemp.theta, 2);
-    LogInfo(", ", anglesTemp.phi, 2);
+    LogInfo(", ", anglesTemp.phi, 2, true);
     
     // for closed loop integration complimentary filter
-    AttitudePrintEuler(&angles);
-    // IMU_PrintAccPitchRoll(acc);
+    // AttitudePrintEuler(&angles);
 
     lastLogTime = curTime;
   }

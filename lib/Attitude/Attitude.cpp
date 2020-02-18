@@ -321,7 +321,7 @@ void AttitudeDcmFromTriad(float nR[3][3], float acc[3], float mag[3], float accI
     MatrixTranspose(A, nR);
 }
 
-#define ALPHA 0.95//0.85
+#define ALPHA 0.8
 void AttitudeComplimentaryFilter(float gyro[3], float acc[3], Euler* angles) {
     unsigned long curTime = millis();
     static unsigned long preTime = curTime;

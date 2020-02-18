@@ -19,8 +19,8 @@
 
 #define IMU_SAMPLE_TIME                         20 // ms
 // accelerometer moving average
-#define SHIFT_ACC 			                    3
-#define SAMPLES_ACC 		                    (1 << SHIFT_ACC)
+#define SHIFT_ACCEL 			                3
+#define SAMPLES_ACCEL 		                    (1 << SHIFT_ACCEL)
 // accelerometer offsets and scale factor
 #define ACCEL_X_OFFSET 			                -453.11
 #define ACCEL_Y_OFFSET 			                -287.54

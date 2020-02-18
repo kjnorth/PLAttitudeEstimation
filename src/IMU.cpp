@@ -48,21 +48,21 @@ void IMU_AccCalibrate(float acc[3]) {
     // moving average
     static uint8_t index = 0;
     static float xsum = 0.0, ysum = 0.0, zsum = 0.0;
-    static float xarr[SAMPLES_ACC] = {0.0};
-    static float yarr[SAMPLES_ACC] = {0.0};
-    static float zarr[SAMPLES_ACC] = {0.0};
+    static float xarr[SAMPLES_ACCEL] = {0.0};
+    static float yarr[SAMPLES_ACCEL] = {0.0};
+    static float zarr[SAMPLES_ACCEL] = {0.0};
 
     xsum -= xarr[index]; xarr[index] = acc[0]; xsum += xarr[index];
     ysum -= yarr[index]; yarr[index] = acc[1]; ysum += yarr[index];
     zsum -= zarr[index]; zarr[index] = acc[2]; zsum += zarr[index];
-    index = (index + 1) & (SAMPLES_ACC - 1); // AND operation for binary modulo is faster than using %
+    index = (index + 1) & (SAMPLES_ACCEL - 1); // AND operation for binary modulo is faster than using %
 
     // muliply sum by 1000 to preserve 3 decimals when performing
 	// shift operation, then divide by 1000.0 to return back to 
 	// original units
-	acc[0] = (float)((int)(xsum * 1000) >> SHIFT_ACC) / 1000.0;
-    acc[1] = (float)((int)(ysum * 1000) >> SHIFT_ACC) / 1000.0;
-    acc[2] = (float)((int)(zsum * 1000) >> SHIFT_ACC) / 1000.0;
+	acc[0] = (float)((int)(xsum * 1000) >> SHIFT_ACCEL) / 1000.0;
+    acc[1] = (float)((int)(ysum * 1000) >> SHIFT_ACCEL) / 1000.0;
+    acc[2] = (float)((int)(zsum * 1000) >> SHIFT_ACCEL) / 1000.0;
 
     // normaliza acc data
     float accNorm = sqrt(acc[0]*acc[0] + acc[1]*acc[1] + acc[2]*acc[2]);
