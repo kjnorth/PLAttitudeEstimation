@@ -7,15 +7,26 @@
 
 #include "IMU.h"
 
-static Adafruit_LSM9DS1 dof = Adafruit_LSM9DS1();
+// static Adafruit_LSM9DS1 dof = Adafruit_LSM9DS1();
+
+#define IMU_ID_RIGHT 0x0009
+#define IMU_ID_LEFT 0x1000
+
+TwoWire i2cBus = TwoWire();
+static Adafruit_LSM9DS1 dof = Adafruit_LSM9DS1(&i2cBus, IMU_ID_RIGHT);
+static Adafruit_LSM9DS1 dof1 = Adafruit_LSM9DS1(&i2cBus, IMU_ID_LEFT);
 
 float gyroXBias = 0.0, gyroYBias = 0.0, gyroZBias = 0.0;
 
 bool IMU_Init(void) {
     if (!dof.begin()) {
-		LogInfo("Failed to initialize IMU\n");
+		LogInfo("Failed to initialize IMU 0\n");
 		return false;
 	}
+    if (!dof1.begin()) {
+        LogInfo("Failed to initialize IMU 1\n");
+        return false;
+    }
 	LogInfo("IMU init complete\n");
     return true;
 }
@@ -32,6 +43,11 @@ void IMU_Read(float acc[3], float gyro[3]) {
     gyro[0] = dof.gyroData.x;
     gyro[1] = dof.gyroData.y;
     gyro[2] = dof.gyroData.z;
+
+    delay(50);
+    dof1.readAccel();
+    LogInfo("L imu acc z ", acc[2], 2);
+    LogInfo(" R imu acc z ", dof1.accelData.z, 2, true);
 }
 
 /** 

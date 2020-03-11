@@ -37,19 +37,19 @@ void setup() {
                // to warm up before sampling 
   AttitudeEulerInit(&angles);
   AttitudeEulerInit(&anglesTemp);
-  LogInfo("filling acc moving average buffer\n");
-  for (int i = 0; i < 2*SAMPLES_ACCEL; i++) {
-    IMU_Read(acc, gyro);
-    IMU_AccCalibrate(acc);
-    delay(IMU_SAMPLE_TIME);
-  }
-  IMU_CalculateGyroBiasAndAccInertial(accI);
+  // LogInfo("filling acc moving average buffer\n");
+  // for (int i = 0; i < 2*SAMPLES_ACCEL; i++) {
+  //   IMU_Read(acc, gyro);
+  //   IMU_AccCalibrate(acc);
+  //   delay(IMU_SAMPLE_TIME);
+  // }
+  // IMU_CalculateGyroBiasAndAccInertial(accI);
 }
 
 void loop() {
   curTime = millis();
   // read imu data every IMU_SAMPLE_TIME ms
-  if (curTime - preTime >= IMU_SAMPLE_TIME) {
+  if (curTime - preTime >= 100) {//IMU_SAMPLE_TIME) {
     IMU_Read(acc, gyro);
     IMU_AccCalibrate(acc);
 
@@ -60,15 +60,15 @@ void loop() {
     gyroD[2] = gyro[2];
     gyroR[2] = gyro[2];
     
-    // for closed loop integration complimentary filter
-    IMU_GyroCalibrateRPS(gyroR);
-    // perform the estimation algorithm of the DCM
-    AttitudeClosedLoopIntegrationAcc(R, nR, gyroR, acc, accI);
-    // convert DCM into yaw, pitch, roll angles
-    AttitudeDcmToEuler(nR, &angles);
-    MatrixCopy(nR, R);
+    // // for closed loop integration complimentary filter
+    // IMU_GyroCalibrateRPS(gyroR);
+    // // perform the estimation algorithm of the DCM
+    // AttitudeClosedLoopIntegrationAcc(R, nR, gyroR, acc, accI);
+    // // convert DCM into yaw, pitch, roll angles
+    // AttitudeDcmToEuler(nR, &angles);
+    // MatrixCopy(nR, R);
 
-    // for much simpler complimentary filter
+    // // for much simpler complimentary filter
     IMU_GyroCalibrateDPS(gyroD);
     AttitudeComplimentaryFilter(gyroD, acc, &anglesTemp);
 
@@ -76,15 +76,15 @@ void loop() {
   }
   
   if (curTime - lastLogTime >= 100) {
-    // for much smipler complimentary filter
+    // for much simpler complimentary filter
     // LogInfo("simple pitch: ", anglesTemp.theta, 2);
-    // LogInfo(", roll: ", anglesTemp.phi, 2);
+    // LogInfo(", roll: ", anglesTemp.phi, 2, true);
     // for data logging
-    LogInfo("", anglesTemp.theta, 2);
-    LogInfo(", ", anglesTemp.phi, 2);
+    // LogInfo("", anglesTemp.theta, 2);
+    // LogInfo(", ", anglesTemp.phi, 2);
     
     // for closed loop integration complimentary filter
-    AttitudePrintEuler(&angles);
+    // AttitudePrintEuler(&angles);
 
     lastLogTime = curTime;
   }
