@@ -99,14 +99,12 @@ bool Adafruit_LSM9DS1::begin()
     digitalWrite(_clk, HIGH);
   }
 
-
   // soft reset & reboot accel/gyro
   write8(XGTYPE, LSM9DS1_REGISTER_CTRL_REG8, 0x05);
   // soft reset & reboot magnetometer
   write8(MAGTYPE, LSM9DS1_REGISTER_CTRL_REG2_M, 0x0C);
 
   delay(10);
-
 
   /*
   for (uint8_t i=0; i<0x30; i++) {
@@ -120,12 +118,12 @@ bool Adafruit_LSM9DS1::begin()
   */
 
   uint8_t id = read8(XGTYPE, LSM9DS1_REGISTER_WHO_AM_I_XG);
-  //Serial.print ("XG whoami: 0x"); Serial.println(id, HEX);
+  // Serial.print ("XG whoami: 0x"); Serial.println(id, HEX);
   if (id != LSM9DS1_XG_ID)
     return false;
 
   id = read8(MAGTYPE, LSM9DS1_REGISTER_WHO_AM_I_M);
-  //Serial.print ("MAG whoami: 0x"); Serial.println(id, HEX);
+  // Serial.print ("MAG whoami: 0x"); Serial.println(id, HEX);
   if (id != LSM9DS1_MAG_ID)
     return false;
 
@@ -136,18 +134,95 @@ bool Adafruit_LSM9DS1::begin()
   write8(XGTYPE, LSM9DS1_REGISTER_CTRL_REG5_XL, 0x38); // enable X Y and Z axis
   write8(XGTYPE, LSM9DS1_REGISTER_CTRL_REG6_XL, 0xC0); // 1 KHz out data rate, BW set by ODR, 408Hz anti-aliasing
 
-
   // enable mag continuous
   //write8(MAGTYPE, LSM9DS1_REGISTER_CTRL_REG1_M, 0xFC); // high perf XY, 80 Hz ODR
   write8(MAGTYPE, LSM9DS1_REGISTER_CTRL_REG3_M, 0x00); // continuous mode
   //write8(MAGTYPE, LSM9DS1_REGISTER_CTRL_REG4_M, 0x0C); // high perf Z mode
 
-
-
   // Set default ranges for the various sensors  
   setupAccel(LSM9DS1_ACCELRANGE_2G);
   setupMag(LSM9DS1_MAGGAIN_4GAUSS);
   setupGyro(LSM9DS1_GYROSCALE_245DPS);
+
+  return true;
+}
+
+bool Adafruit_LSM9DS1::myBegin(byte magAddr0, byte xgAddr0, byte magAddr1, byte xgAddr1)
+{
+  if (_i2c) {
+    _wire->begin();
+  } else {
+    Serial.println("ERROR - IMU's not in I2C mode.\n");
+    return false;
+  }
+
+  // **** config IMU 0 ****
+  // soft reset & reboot accel/gyro 0
+  myWrite8(xgAddr0, LSM9DS1_REGISTER_CTRL_REG8, 0x05);
+  // soft reset & reboot magnetometer 0
+  myWrite8(magAddr0, LSM9DS1_REGISTER_CTRL_REG2_M, 0x0C);
+  delay(10);
+
+  uint8_t id = myRead8(xgAddr0, LSM9DS1_REGISTER_WHO_AM_I_XG);
+  // Serial.print ("XG 0 whoami: 0x"); Serial.println(id, HEX);
+  if (id != LSM9DS1_XG_ID)
+    return false;
+
+  id = myRead8(magAddr0, LSM9DS1_REGISTER_WHO_AM_I_M);
+  // Serial.print ("MAG 0 whoami: 0x"); Serial.println(id, HEX);
+  if (id != LSM9DS1_MAG_ID)
+    return false;
+
+  // enable gyro continuous
+  myWrite8(xgAddr0, LSM9DS1_REGISTER_CTRL_REG1_G, 0xC0); // on XYZ
+
+  // Enable the accelerometer continous
+  myWrite8(xgAddr0, LSM9DS1_REGISTER_CTRL_REG5_XL, 0x38); // enable X Y and Z axis
+  myWrite8(xgAddr0, LSM9DS1_REGISTER_CTRL_REG6_XL, 0xC0); // 1 KHz out data rate, BW set by ODR, 408Hz anti-aliasing
+
+  // enable mag continuous
+  myWrite8(magAddr0, LSM9DS1_REGISTER_CTRL_REG3_M, 0x00); // continuous mode
+
+  // Set default ranges for the various sensors  
+  mySetupAccel(xgAddr0, LSM9DS1_ACCELRANGE_2G);
+  mySetupMag(magAddr0, LSM9DS1_MAGGAIN_4GAUSS);
+  mySetupGyro(xgAddr0, LSM9DS1_GYROSCALE_245DPS);
+  // **********************
+
+  delay(10);
+
+  // **** config IMU 1 ****
+  // soft reset & reboot accel/gyro 1
+  myWrite8(xgAddr1, LSM9DS1_REGISTER_CTRL_REG8, 0x05);
+  // soft reset & reboot magnetometer 1
+  myWrite8(magAddr1, LSM9DS1_REGISTER_CTRL_REG2_M, 0x0C);
+  delay(10);
+
+  id = myRead8(xgAddr1, LSM9DS1_REGISTER_WHO_AM_I_XG);
+  // Serial.print ("XG 1 whoami: 0x"); Serial.println(id, HEX);
+  if (id != LSM9DS1_XG_ID)
+    return false;
+
+  id = myRead8(magAddr1, LSM9DS1_REGISTER_WHO_AM_I_M);
+  // Serial.print ("MAG 1 whoami: 0x"); Serial.println(id, HEX);
+  if (id != LSM9DS1_MAG_ID)
+    return false;
+
+  // enable gyro continuous
+  myWrite8(xgAddr1, LSM9DS1_REGISTER_CTRL_REG1_G, 0xC0); // on XYZ
+
+  // Enable the accelerometer continous
+  myWrite8(xgAddr1, LSM9DS1_REGISTER_CTRL_REG5_XL, 0x38); // enable X Y and Z axis
+  myWrite8(xgAddr1, LSM9DS1_REGISTER_CTRL_REG6_XL, 0xC0); // 1 KHz out data rate, BW set by ODR, 408Hz anti-aliasing
+
+  // enable mag continuous
+  myWrite8(magAddr1, LSM9DS1_REGISTER_CTRL_REG3_M, 0x00); // continuous mode
+
+  // Set default ranges for the various sensors  
+  mySetupAccel(xgAddr1, LSM9DS1_ACCELRANGE_2G);
+  mySetupMag(magAddr1, LSM9DS1_MAGGAIN_4GAUSS);
+  mySetupGyro(xgAddr1, LSM9DS1_GYROSCALE_245DPS);
+  // **********************
 
   return true;
 }
@@ -162,6 +237,15 @@ void Adafruit_LSM9DS1::read()
   readMag();
   readGyro();
   readTemp();
+}
+
+void Adafruit_LSM9DS1::myRead( byte magAddr, byte xgAddr )
+{
+  /* Read all the sensors. */
+  myReadAccel(xgAddr);
+  myReadMag(magAddr);
+  myReadGyro(xgAddr);
+  myReadTemp(xgAddr);
 }
 
 void Adafruit_LSM9DS1::readAccel() {
@@ -187,10 +271,56 @@ void Adafruit_LSM9DS1::readAccel() {
   accelData.z = zhi;
 }
 
+void Adafruit_LSM9DS1::myReadAccel( byte xgAddr ) {
+  // Read the accelerometer
+  byte buffer[6];
+  myReadBuffer(xgAddr, 
+       0x80 | LSM9DS1_REGISTER_OUT_X_L_XL, 
+       6, buffer);
+  
+  uint8_t xlo = buffer[0];
+  int16_t xhi = buffer[1];
+  uint8_t ylo = buffer[2];
+  int16_t yhi = buffer[3];
+  uint8_t zlo = buffer[4];
+  int16_t zhi = buffer[5];
+  
+  // Shift values to create properly formed integer (low byte first)
+  xhi <<= 8; xhi |= xlo;
+  yhi <<= 8; yhi |= ylo;
+  zhi <<= 8; zhi |= zlo;
+  accelData.x = xhi;
+  accelData.y = yhi;
+  accelData.z = zhi;
+}
+
 void Adafruit_LSM9DS1::readMag() {
   // Read the magnetometer
   byte buffer[6];
   readBuffer(MAGTYPE, 
+       0x80 | LSM9DS1_REGISTER_OUT_X_L_M, 
+       6, buffer);
+  
+  uint8_t xlo = buffer[0];
+  int16_t xhi = buffer[1];
+  uint8_t ylo = buffer[2];
+  int16_t yhi = buffer[3];
+  uint8_t zlo = buffer[4];
+  int16_t zhi = buffer[5];
+  
+  // Shift values to create properly formed integer (low byte first)
+  xhi <<= 8; xhi |= xlo;
+  yhi <<= 8; yhi |= ylo;
+  zhi <<= 8; zhi |= zlo;
+  magData.x = xhi;
+  magData.y = yhi;
+  magData.z = zhi;
+}
+
+void Adafruit_LSM9DS1::myReadMag( byte magAddr ) {
+  // Read the magnetometer
+  byte buffer[6];
+  myReadBuffer(magAddr, 
        0x80 | LSM9DS1_REGISTER_OUT_X_L_M, 
        6, buffer);
   
@@ -234,10 +364,49 @@ void Adafruit_LSM9DS1::readGyro() {
   gyroData.z = zhi;
 }
 
+void Adafruit_LSM9DS1::myReadGyro( byte xgAddr ) {
+  // Read gyro
+  byte buffer[6];
+  myReadBuffer(xgAddr, 
+       0x80 | LSM9DS1_REGISTER_OUT_X_L_G, 
+       6, buffer);
+  
+  uint8_t xlo = buffer[0];
+  int16_t xhi = buffer[1];
+  uint8_t ylo = buffer[2];
+  int16_t yhi = buffer[3];
+  uint8_t zlo = buffer[4];
+  int16_t zhi = buffer[5];
+  
+  // Shift values to create properly formed integer (low byte first)
+  xhi <<= 8; xhi |= xlo;
+  yhi <<= 8; yhi |= ylo;
+  zhi <<= 8; zhi |= zlo;
+  
+  gyroData.x = xhi;
+  gyroData.y = yhi;
+  gyroData.z = zhi;
+}
+
 void Adafruit_LSM9DS1::readTemp() {
   // Read temp sensor
   byte buffer[2];
   readBuffer(XGTYPE, 
+       0x80 | LSM9DS1_REGISTER_TEMP_OUT_L, 
+       2, buffer);
+  uint8_t xlo = buffer[0];
+  int16_t xhi = buffer[1];
+
+  xhi <<= 8; xhi |= xlo;
+  
+  // Shift values to create properly formed integer (low byte first)
+  temperature = xhi;
+}
+
+void Adafruit_LSM9DS1::myReadTemp( byte xgAddr ) {
+  // Read temp sensor
+  byte buffer[2];
+  myReadBuffer(xgAddr, 
        0x80 | LSM9DS1_REGISTER_TEMP_OUT_L, 
        2, buffer);
   uint8_t xlo = buffer[0];
@@ -254,8 +423,31 @@ void Adafruit_LSM9DS1::setupAccel ( lsm9ds1AccelRange_t range )
   uint8_t reg = read8(XGTYPE, LSM9DS1_REGISTER_CTRL_REG6_XL);
   reg &= ~(0b00011000);
   reg |= range;
-  //Serial.println("set range: ");
   write8(XGTYPE, LSM9DS1_REGISTER_CTRL_REG6_XL, reg );
+  
+  switch (range)
+  {
+    case LSM9DS1_ACCELRANGE_2G:
+      _accel_mg_lsb = LSM9DS1_ACCEL_MG_LSB_2G;
+      break;
+    case LSM9DS1_ACCELRANGE_4G:
+      _accel_mg_lsb = LSM9DS1_ACCEL_MG_LSB_4G;
+      break;
+    case LSM9DS1_ACCELRANGE_8G:
+      _accel_mg_lsb = LSM9DS1_ACCEL_MG_LSB_8G;
+      break;    
+    case LSM9DS1_ACCELRANGE_16G:
+      _accel_mg_lsb =LSM9DS1_ACCEL_MG_LSB_16G;
+      break;
+  }
+}
+
+void Adafruit_LSM9DS1::mySetupAccel ( byte xgAddr, lsm9ds1AccelRange_t range )
+{
+  uint8_t reg = myRead8(xgAddr, LSM9DS1_REGISTER_CTRL_REG6_XL);
+  reg &= ~(0b00011000);
+  reg |= range;
+  myWrite8(xgAddr, LSM9DS1_REGISTER_CTRL_REG6_XL, reg );
   
   switch (range)
   {
@@ -298,12 +490,57 @@ void Adafruit_LSM9DS1::setupMag ( lsm9ds1MagGain_t gain )
   }
 }
 
+void Adafruit_LSM9DS1::mySetupMag ( byte magAddr, lsm9ds1MagGain_t gain )
+{
+  uint8_t reg = myRead8(magAddr, LSM9DS1_REGISTER_CTRL_REG2_M);
+  reg &= ~(0b01100000);
+  reg |= gain;
+  myWrite8(magAddr, LSM9DS1_REGISTER_CTRL_REG2_M, reg);
+
+  switch(gain)
+  {
+    case LSM9DS1_MAGGAIN_4GAUSS:
+      _mag_mgauss_lsb = LSM9DS1_MAG_MGAUSS_4GAUSS;
+      break;
+    case LSM9DS1_MAGGAIN_8GAUSS:
+      _mag_mgauss_lsb = LSM9DS1_MAG_MGAUSS_8GAUSS;
+      break;
+    case LSM9DS1_MAGGAIN_12GAUSS:
+      _mag_mgauss_lsb = LSM9DS1_MAG_MGAUSS_12GAUSS;
+      break;
+    case LSM9DS1_MAGGAIN_16GAUSS:
+      _mag_mgauss_lsb = LSM9DS1_MAG_MGAUSS_16GAUSS;
+      break;
+  }
+}
+
 void Adafruit_LSM9DS1::setupGyro ( lsm9ds1GyroScale_t scale )
 {
   uint8_t reg = read8(XGTYPE, LSM9DS1_REGISTER_CTRL_REG1_G);
   reg &= ~(0b00011000);
   reg |= scale;
   write8(XGTYPE, LSM9DS1_REGISTER_CTRL_REG1_G, reg );
+
+  switch(scale)
+  {
+    case LSM9DS1_GYROSCALE_245DPS:
+      _gyro_dps_digit = LSM9DS1_GYRO_DPS_DIGIT_245DPS;
+      break;
+    case LSM9DS1_GYROSCALE_500DPS:
+      _gyro_dps_digit = LSM9DS1_GYRO_DPS_DIGIT_500DPS;
+      break;
+    case LSM9DS1_GYROSCALE_2000DPS:
+      _gyro_dps_digit = LSM9DS1_GYRO_DPS_DIGIT_2000DPS;
+      break;
+  }
+}
+
+void Adafruit_LSM9DS1::mySetupGyro ( byte xgAddr, lsm9ds1GyroScale_t scale )
+{
+  uint8_t reg = myRead8(xgAddr, LSM9DS1_REGISTER_CTRL_REG1_G);
+  reg &= ~(0b00011000);
+  reg |= scale;
+  myWrite8(xgAddr, LSM9DS1_REGISTER_CTRL_REG1_G, reg);
 
   switch(scale)
   {
@@ -400,11 +637,28 @@ void Adafruit_LSM9DS1::write8(boolean type, byte reg, byte value)
   }
 }
 
+void Adafruit_LSM9DS1::myWrite8(byte address, byte reg, byte value)
+{
+  _wire->beginTransmission(address);
+  _wire->write(reg);
+  _wire->write(value);
+  _wire->endTransmission();
+}
+
 byte Adafruit_LSM9DS1::read8(boolean type, byte reg)
 {
   uint8_t value;
 
   readBuffer(type, reg, 1, &value);
+
+  return value;
+}
+
+byte Adafruit_LSM9DS1::myRead8(byte address, byte reg)
+{
+  uint8_t value;
+
+  myReadBuffer(address, reg, 1, &value);
 
   return value;
 }
@@ -463,6 +717,23 @@ byte Adafruit_LSM9DS1::readBuffer(boolean type, byte reg, byte len, uint8_t *buf
     digitalWrite(_cs, HIGH);
   }
 
+  return len;
+}
+
+byte Adafruit_LSM9DS1::myReadBuffer(byte address, byte reg, byte len, uint8_t *buffer)
+{
+  if (_i2c) {
+    _wire->beginTransmission(address);
+    _wire->write(reg);
+    _wire->endTransmission();
+    if (_wire->requestFrom(address, (byte)len) != len) {
+      return 0;
+    }
+
+    for (uint8_t i=0; i<len; i++) {
+      buffer[i] = _wire->read();
+    }
+  }
   return len;
 }
 

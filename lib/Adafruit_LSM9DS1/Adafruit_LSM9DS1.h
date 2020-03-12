@@ -185,19 +185,43 @@ class Adafruit_LSM9DS1
     lsm9ds1Vector_t gyroData;     // Last read gyroscope data will be available here
     int16_t         temperature;  // Last read temperzture data will be available here
     
-    bool    begin       ( void );
-    void    read        ( void );
-    void    readAccel   ( void );
-    void    readMag     ( void );
-    void    readGyro    ( void );
-    void    readTemp    ( void );
-    void    setupAccel  ( lsm9ds1AccelRange_t range );
-    void    setupMag    ( lsm9ds1MagGain_t gain );
-    void    setupGyro   ( lsm9ds1GyroScale_t scale );
-    void    write8      ( boolean type, byte reg, byte value );
-    byte    read8       ( boolean type, byte reg);
-    byte    readBuffer  ( boolean type, byte reg, byte len, uint8_t *buffer);
-    uint8_t spixfer     ( uint8_t data );
+    bool    begin         ( void );
+    /** @FUNC myBegin inits 2 LSM9DS1's on the same I2C bus.
+     * @NOTE both sensors must have the exact same
+     * DPS / GAUSS / G's settings!
+     * @NOTE that SDO_AG and SDO_M must be pulled LOW
+     * on one of the sensors. This will change its
+     * MAG and XG adresses to 0x1C and 0x6A, respectively.
+     * The other sensor's MAG and XG addresses are
+     * 0x1E and 0x6B, respectively.
+     * @NOTE also that all of the functions prefixed
+     * with 'my' are used in conjunction with the
+     * myBegin function */
+    bool    myBegin       ( byte magAddr0, byte xgAddr0,
+                            byte magAddr1, byte xgAddr1);
+    void    read          ( void );
+    void    myRead        ( byte magAddr, byte xgAddr );
+    void    readAccel     ( void );
+    void    myReadAccel   ( byte xgAddr );
+    void    readMag       ( void );
+    void    myReadMag     ( byte magAddr );
+    void    readGyro      ( void );
+    void    myReadGyro    ( byte xgAddr );
+    void    readTemp      ( void );
+    void    myReadTemp    ( byte xgAddr );
+    void    setupAccel    ( lsm9ds1AccelRange_t range );
+    void    mySetupAccel  ( byte xgAddr, lsm9ds1AccelRange_t range );
+    void    setupMag      ( lsm9ds1MagGain_t gain );
+    void    mySetupMag    ( byte magAddr, lsm9ds1MagGain_t gain );
+    void    setupGyro     ( lsm9ds1GyroScale_t scale );
+    void    mySetupGyro   ( byte xgAddr, lsm9ds1GyroScale_t scale );
+    void    write8        ( boolean type, byte reg, byte value );
+    void    myWrite8      ( byte address, byte reg, byte value );
+    byte    read8         ( boolean type, byte reg);
+    byte    myRead8       ( byte address, byte reg);
+    byte    readBuffer    ( boolean type, byte reg, byte len, uint8_t *buffer);
+    byte    myReadBuffer  ( byte address, byte reg, byte len, uint8_t *buffer);
+    uint8_t spixfer       ( uint8_t data );
     
     /* Adafruit Unified Sensor Functions (not standard yet ... the current base class only */
     /* supports one sensor type, and we need to update the unified base class to support   */

@@ -7,47 +7,47 @@
 
 #include "IMU.h"
 
-// static Adafruit_LSM9DS1 dof = Adafruit_LSM9DS1();
+#define MAG_ADDRESS_LEFT    0x1E
+#define MAG_ADDRESS_RIGHT   0x1C
+#define XG_ADDRESS_LEFT     0x6B
+#define XG_ADDRESS_RIGHT    0x6A 
 
-#define IMU_ID_RIGHT 0x0009
-#define IMU_ID_LEFT 0x1000
-
-TwoWire i2cBus = TwoWire();
-static Adafruit_LSM9DS1 dof = Adafruit_LSM9DS1(&i2cBus, IMU_ID_RIGHT);
-static Adafruit_LSM9DS1 dof1 = Adafruit_LSM9DS1(&i2cBus, IMU_ID_LEFT);
+TwoWire bus = TwoWire();
+static Adafruit_LSM9DS1 dof = Adafruit_LSM9DS1(&bus);
 
 float gyroXBias = 0.0, gyroYBias = 0.0, gyroZBias = 0.0;
 
 bool IMU_Init(void) {
-    if (!dof.begin()) {
-		LogInfo("Failed to initialize IMU 0\n");
+    if (!dof.myBegin(MAG_ADDRESS_LEFT, XG_ADDRESS_LEFT, MAG_ADDRESS_RIGHT, XG_ADDRESS_RIGHT)) {
+		LogInfo("Failed to initialize IMU's\n");
 		return false;
 	}
-    if (!dof1.begin()) {
-        LogInfo("Failed to initialize IMU 1\n");
-        return false;
-    }
-	LogInfo("IMU init complete\n");
+	LogInfo("IMU's initialized successfully\n");
     return true;
 }
 
 void IMU_Read(float acc[3], float gyro[3]) {
-    dof.readAccel();
-    acc[0] = dof.accelData.x;
-    // negate y to convert sensor data to
-    // right handed coordinate system
-    acc[1] = -dof.accelData.y;
-    acc[2] = dof.accelData.z;
+    // dof.readAccel();
+    // acc[0] = dof.accelData.x;
+    // // negate y to convert sensor data to
+    // // right handed coordinate system
+    // acc[1] = -dof.accelData.y;
+    // acc[2] = dof.accelData.z;
 
-    dof.readGyro();
-    gyro[0] = dof.gyroData.x;
-    gyro[1] = dof.gyroData.y;
-    gyro[2] = dof.gyroData.z;
+    // dof.readGyro();
+    // gyro[0] = dof.gyroData.x;
+    // gyro[1] = dof.gyroData.y;
+    // gyro[2] = dof.gyroData.z;
 
-    delay(50);
-    dof1.readAccel();
-    LogInfo("L imu acc z ", acc[2], 2);
-    LogInfo(" R imu acc z ", dof1.accelData.z, 2, true);
+    // test code for reads from two IMUs on same bus
+    // read left accel
+    dof.myReadAccel(XG_ADDRESS_LEFT);
+    LogInfo("left acc z ", dof.accelData.z, 2);
+    // delay(10);
+
+    // read right accel
+    dof.myReadAccel(XG_ADDRESS_RIGHT);
+    LogInfo(" right acc z ", dof.accelData.z, 2, true);
 }
 
 /** 
