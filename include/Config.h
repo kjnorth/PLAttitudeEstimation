@@ -22,9 +22,9 @@
 #define SHIFT_ACCEL 			                3
 #define SAMPLES_ACCEL 		                    (1 << SHIFT_ACCEL)
 // accelerometer offsets and scale factor
-#define ACCEL_X_OFFSET 			                -224.47
-#define ACCEL_Y_OFFSET 			                8.64
-#define ACCEL_Z_OFFSET 			                -181.03
+#define ACCEL_X_OFFSET 			                -341.24
+#define ACCEL_Y_OFFSET 			                175.26
+#define ACCEL_Z_OFFSET 			                300.80
 #define ACCEL_SCALE_FACTOR 	                    16393.44 // LSB/g
 // gyro scale factor from the datasheet
 #define GYRO_SF_DATASHEET                       0.00875 // 8.75 mdps/LSB

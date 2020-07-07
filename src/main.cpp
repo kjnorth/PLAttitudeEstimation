@@ -33,7 +33,7 @@ void setup() {
   Serial.begin(115200);
   LogInfo("attitude estimation program starts\n");
   IMU_Init();
-  delay(1000); // small delay needed here to give gyro time
+  delay(5000); // small delay needed here to give gyro time
                // to warm up before sampling 
   AttitudeEulerInit(&angles);
   AttitudeEulerInit(&anglesTemp);
@@ -48,10 +48,19 @@ void setup() {
 
 void loop() {
   curTime = millis();
+  static int i = 0;
   // read imu data every IMU_SAMPLE_TIME ms
-  if (curTime - preTime >= 100) {//IMU_SAMPLE_TIME) {
+  if (curTime - preTime >= IMU_SAMPLE_TIME && i < 100) {
+    // i++; // // UNCOMMENT when calibrating accel
     IMU_Read(acc, gyro);
+    // LogInfo("raw acc x, y, z, ", acc[0], 2);
+    // LogInfo(", ", acc[1], 2);
+    // LogInfo(", ", acc[2], 2, true);
+
     IMU_AccCalibrate(acc);
+    // LogInfo("CALIBRATED acc x, y, z, ", acc[0], 2);
+    // LogInfo(", ", acc[1], 2);
+    // LogInfo(", ", acc[2], 2, true);
 
     gyroD[0] = gyro[0];
     gyroR[0] = gyro[0];
@@ -77,8 +86,8 @@ void loop() {
   
   if (curTime - lastLogTime >= 100) {
     // for much simpler complimentary filter
-    // LogInfo("simple pitch: ", anglesTemp.theta, 2);
-    // LogInfo(", roll: ", anglesTemp.phi, 2, true);
+    LogInfo("simple pitch: ", anglesTemp.theta, 2);
+    LogInfo(", roll: ", anglesTemp.phi, 2, true);
     // for data logging
     // LogInfo("", anglesTemp.theta, 2);
     // LogInfo(", ", anglesTemp.phi, 2);

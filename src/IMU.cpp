@@ -8,8 +8,8 @@
 #include "IMU.h"
 
 #define MAG_ADDRESS_LEFT    0x1E
-#define MAG_ADDRESS_RIGHT   0x1C
 #define XG_ADDRESS_LEFT     0x6B
+#define MAG_ADDRESS_RIGHT   0x1C
 #define XG_ADDRESS_RIGHT    0x6A 
 
 TwoWire bus = TwoWire();
@@ -18,36 +18,45 @@ static Adafruit_LSM9DS1 dof = Adafruit_LSM9DS1(&bus);
 float gyroXBias = 0.0, gyroYBias = 0.0, gyroZBias = 0.0;
 
 bool IMU_Init(void) {
-    if (!dof.myBegin(MAG_ADDRESS_LEFT, XG_ADDRESS_LEFT, MAG_ADDRESS_RIGHT, XG_ADDRESS_RIGHT)) {
-		LogInfo("Failed to initialize IMU's\n");
-		return false;
-	}
-	LogInfo("IMU's initialized successfully\n");
+    /* Dual IMU's */
+    // if (!dof.myBegin(MAG_ADDRESS_LEFT, XG_ADDRESS_LEFT, MAG_ADDRESS_RIGHT, XG_ADDRESS_RIGHT)) {
+	// 	LogInfo("Failed to initialize IMU's\n");
+	// 	return false;
+	// }
+    // LogInfo("IMU's initialized successfully\n");
+    // return true;
+
+    /* Single IMU */
+    if (!dof.begin()) {
+        LogInfo("Failed to initialize IMU\n");
+        return false;
+    }
+	LogInfo("IMU initialized successfully\n");
     return true;
 }
 
 void IMU_Read(float acc[3], float gyro[3]) {
-    // dof.readAccel();
-    // acc[0] = dof.accelData.x;
-    // // negate y to convert sensor data to
-    // // right handed coordinate system
-    // acc[1] = -dof.accelData.y;
-    // acc[2] = dof.accelData.z;
+    dof.readAccel();
+    acc[0] = dof.accelData.x;
+    // negate y to convert sensor data to
+    // right handed coordinate system
+    acc[1] = -dof.accelData.y;
+    acc[2] = dof.accelData.z;
 
-    // dof.readGyro();
-    // gyro[0] = dof.gyroData.x;
-    // gyro[1] = dof.gyroData.y;
-    // gyro[2] = dof.gyroData.z;
+    dof.readGyro();
+    gyro[0] = dof.gyroData.x;
+    gyro[1] = dof.gyroData.y;
+    gyro[2] = dof.gyroData.z;
 
     // test code for reads from two IMUs on same bus
     // read left accel
-    dof.myReadAccel(XG_ADDRESS_LEFT);
-    LogInfo("left acc z ", dof.accelData.z, 2);
-    // delay(10);
+    // dof.myReadAccel(XG_ADDRESS_LEFT);
+    // LogInfo("left acc z ", dof.accelData.z, 2);
+    // // delay(10);
 
-    // read right accel
-    dof.myReadAccel(XG_ADDRESS_RIGHT);
-    LogInfo(" right acc z ", dof.accelData.z, 2, true);
+    // // read right accel
+    // dof.myReadAccel(XG_ADDRESS_RIGHT);
+    // LogInfo(" right acc z ", dof.accelData.z, 2, true);
 }
 
 /** 
@@ -79,13 +88,6 @@ void IMU_AccCalibrate(float acc[3]) {
 	acc[0] = (float)((int)(xsum * 1000) >> SHIFT_ACCEL) / 1000.0;
     acc[1] = (float)((int)(ysum * 1000) >> SHIFT_ACCEL) / 1000.0;
     acc[2] = (float)((int)(zsum * 1000) >> SHIFT_ACCEL) / 1000.0;
-
-    // normaliza acc data
-    float accNorm = sqrt(acc[0]*acc[0] + acc[1]*acc[1] + acc[2]*acc[2]);
-    // convert acc data to unit length
-    acc[0] = acc[0] / accNorm;
-    acc[1] = acc[1] / accNorm;
-    acc[2] = acc[2] / accNorm;
 }
 
 void IMU_GyroCalibrateDPS(float gyro[3]) {
