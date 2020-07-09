@@ -35,7 +35,10 @@ bool IMU_Init(void) {
     return true;
 }
 
+#define PL 0
+#define TRUCK !PL
 void IMU_Read(float acc[3], float gyro[3]) {
+#if PL
     dof.readAccel();
     acc[0] = dof.accelData.x;
     // negate y to convert sensor data to
@@ -47,6 +50,21 @@ void IMU_Read(float acc[3], float gyro[3]) {
     gyro[0] = dof.gyroData.x;
     gyro[1] = dof.gyroData.y;
     gyro[2] = dof.gyroData.z;
+#elif TRUCK
+    dof.readAccel();
+	acc[0] = dof.accelData.x;
+	// y axis in right handed coordinate system since IMU is 
+	// upside down on truck
+	acc[1] = dof.accelData.y;
+	// negate accel z since IMU mounted upside down on truck
+	acc[2] = -dof.accelData.z;
+
+	dof.readGyro();
+	gyro[0] = dof.gyroData.x;
+	// negate gyro y since IMU is upside down on truck
+	gyro[1] = -dof.gyroData.y;
+	gyro[2] = dof.gyroData.z;
+#endif
 
     // test code for reads from two IMUs on same bus
     // read left accel
